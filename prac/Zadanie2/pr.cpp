@@ -11,7 +11,7 @@ public:
         num++;
         if(c != nullptr){
         _name = new char[strlen(c)+1];
-        for (int i = 0;i<strlen(c);i++){_name[i]=c[i];}
+        for (int i = 0;i<(int)strlen(c);i++){_name[i]=c[i];}
         _name[strlen(c)]='\0';
         }
         else {_name = nullptr;}
@@ -31,7 +31,7 @@ public:
         _code = s.getcode();
         if(s.getname() != nullptr){
         _name = new char[strlen(s.getname())+1];
-        for (int i = 0;i<strlen(s.getname());i++){_name[i]=s.getname()[i];}
+        for (int i = 0;i<(int)strlen(s.getname());i++){_name[i]=s.getname()[i];}
         _name[strlen(s.getname())]='\0';
         }
         else {
@@ -93,7 +93,25 @@ std::ostream & operator<<(std::ostream & s,const student & st){
     else {s<<"name=empty"<<'\n';}
     return s;
 }
+class _class1:public _class{
+public:
+	int getnumber()const{return 0;}
+};
 int main()
-{
+{    
+    char s[4];
+    s[0]='a';
+    s[1]='b';
+    s[2]='c';
+    s[3]='\0';
+    student st(1,2,s),s1;
+    _class1 cl;
+    cl.addst(st);
+    _class1 cl2(cl);
+    cl2.addst(s1);
+    std::cout <<cl <<'\n';
+    std::cout <<cl2<<'\n';
+    std::cout <<student::Nums() <<'\n';
+    std::cout <<_class::Nums() <<'\n';
     return 0;
 }
