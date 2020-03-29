@@ -64,7 +64,6 @@ void display()
         glutSwapBuffers();
 }
 int dlr[2]={0,0},evh[2]={0,0},count[2]={0,0};
-int singlemod = 0;
 void up(int num){
 	if(num==1){
 		if(!jmp) dlr[0]=1;
@@ -96,81 +95,49 @@ void pwon(int k){
 		close(fd);
 	}
 }
-int kc1=0,kc2=0;
-void kick(int num){
-	if(num==1){
-		if((100+sd>width-200+sd1)&&(sd<width-150+sd1)&&(kc1==0)&&(jmp1-jmp<10)){
-			if(sd1<-100) sd1+=100;	
-			else sd1=0;
-			kc1=1;
-		 }	
-	}
-	else{
-		if((100+sd>width-200+sd1)&&(sd<width-150+sd1)&&(kc2==0)&&(jmp-jmp1<10)){
-			if(sd>100) sd-=100;
-			else sd=0;
-			kc2=1;
-		}
-	}
-}
 void timef(int value){
 	if(!dlr[0]){
 		if(jmp>0){ jmp-=10; glutPostRedisplay(); }
 	}
 	else{
-		if(jmp < 190){ jmp+=20; glutPostRedisplay(); }
+		if(jmp < 90){ jmp+=20; glutPostRedisplay(); }
 		else dlr[0]=0;
 	}
 	if(!dlr[1]){
 		if(jmp1>0){ jmp1-=10; glutPostRedisplay(); }
 	}
 	else{
-		if(jmp1 < 190){ jmp1+=20; glutPostRedisplay(); }
+		if(jmp1 < 90){ jmp1+=20; glutPostRedisplay(); }
 		else dlr[1]=0;
 	}
 	if(evh[0]){
-		if(count[0]<4){ count[0]++;sd+=evh[0]*10; glutPostRedisplay(); }
+		if(count[0]<4){ count[0]++;sd+=evh[0]*5; glutPostRedisplay(); }
 		else{ evh[0]=0;count[0]=0;}
 	}
 	if(evh[1]){
-		if(count[1]<4){ count[1]++;sd1+=evh[1]*10; glutPostRedisplay(); }
+		if(count[1]<4){ count[1]++;sd1+=evh[1]*5; glutPostRedisplay(); }
 		else{ evh[1]=0;count[1]=0;}
 	}
-	if(singlemod){
-		if(width-200+sd1>0) sd1-=10;//
-		else up(2);
-		kick(2);
-	}
-	if(kc1)
-		if(kc1<25) kc1++;
-		else kc1 = 0;
-	if(kc2)
-		if(kc2<25) kc2++;
-		else kc2 = 0;
 	switch(checkWin()){
 		case 0:break;
 l:		case 1:std::cout<<"Player 1 won!\n";pwon(1);exit(0);break;
 		case 2:std::cout<<"Player 2 won!\n";pwon(2);exit(0);break;
 	}
-	glutPostRedisplay();
 	glutTimerFunc (40, timef, 0);
 }
 void chgclr(float & i){
 	if(i>0.9) i = 0.0;
 	else i+=0.1;
 }
-
 void processNormalKeys(unsigned char key, int x, int y) {
 	switch(key){
 		case 27: exit(0);//esc
 		case 87:case 119: up(1); break;//w
 		case 65:case 97: side(-1,1);break;//a
 		case 68:case 100: side(1,1);break;//d
-		case 83:case 115: kick(1); break;//s
 		case 73:case 105: up(2); break;//i
 		case 74:case 106: side(-1,2);break;//j
 		case 76:case 108: side(1,2);break;//l
-		case 75:case 107: kick(2); break;//s
 		case 90:case 122: chgclr(pl1r);break;//z
 		case 88:case 120: chgclr(pl1g);break;//x
 		case 67:case 99: chgclr(pl1b);break;//c
@@ -183,12 +150,7 @@ void processNormalKeys(unsigned char key, int x, int y) {
 
 int main (int argc, char * argv[])
 {
-	char y;
-	std::cout<<"singlemod? ";
-	std::cin>>y;
-	if(y=='y') singlemod=1;
-	nosave=1;
-	if(argc>1) nosave=0;
+	if(argc>1) nosave=1;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA);
 	glutInitWindowSize(width,height);
