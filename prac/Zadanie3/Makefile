@@ -5,4 +5,4 @@ run: main
 runval: main
 	valgrind ./main
 clear:
-	rm main
+	rm -f main
