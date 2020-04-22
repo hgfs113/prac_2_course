@@ -143,6 +143,8 @@ Lex Scanner::get_lex(){
 				else
 				if(c=='}'){Lex(LEX_FIN,0); gc();}
 				else
+				if(c=='#'){CS = COM1; gc();}
+				else
 				if(c==-1){CS = FIN;}
 				else
 				if((c=='.')||(c=='[')||(c==']')||(c==',')||(c=='(')||(c==')')||(c==':')||(c==';')){buf.push_back(c);gc();j=look(buf, TD); Lex(dlms[j], j);}
