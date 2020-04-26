@@ -5,16 +5,18 @@
 #include <stack>
 #include <unistd.h>
 #include <fcntl.h>
-#define TDLEN 29
+
 using namespace std;
 enum  type_of_lex {
 	LEX_NULL, /*0*/
-	LEX_BEGIN,/* ...*/ LEX_WRITE, /*18*/ 
+	LEX_BEGIN,LEX_END,/* ...*/
 	LEX_FIN, /*19*/
 	LEX_SEMICOLON, LEX_COMMA,LEX_STR, LEX_COLON, LEX_LPAR, LEX_RPAR, LEX_DEF,
 	LEX_LESS, LEX_GRT, LEX_PLUS, LEX_MINUS, LEX_MUL, LEX_DIV, LEX_LEQ, LEX_GEQ, 
 	LEX_EQ, LEX_NEQ, LEX_EQ2, LEX_NEQ2, LEX_PLUSD, LEX_INC, LEX_MINUSD, LEX_DEC, 
-	LEX_MULD, LEX_DIVD, LEX_MOD, LEX_MODD,LEX_AND,LEX_OR,
+	LEX_MULD, LEX_DIVD, LEX_MOD, LEX_MODD,LEX_AND,LEX_OR, LEX_DO, LEX_ELSE, 
+	LEX_FUNC, LEX_IF, LEX_FALSE, LEX_READ, LEX_TRUE, LEX_VAR, LEX_WHILE,
+	LEX_WRITE,LEX_FOR, LEX_IN, LEX_BREAK, LEX_CONT, LEX_RETURN,
 	LEX_NUM, /*36*/
 	LEX_IDENT, /*37*/
 	POLIZ_LABEL, /*38*/
@@ -32,7 +34,7 @@ public:
 		t_lex = t; 
 		v_lex = v;
 	}
-	Lex ( type_of_lex t = LEX_NULL,const string = ""){
+	Lex ( type_of_lex t ,const string ){
 		t_lex = t; 
 		v_lex = 0;
 	}
@@ -87,8 +89,8 @@ class Scanner{
 	FILE *fp; 
 	int c;
 	int look(const string & buf,  string *  list){
-		int i= 0;
-		while(i<TDLEN){
+		int i= 1;
+		while(list[i] != ""){
 			if(buf==list[i])
 				return i;
 			i++;
@@ -100,15 +102,16 @@ class Scanner{
 public:
 	static string TW [], TD[];
 	static type_of_lex dlms[];
+	static type_of_lex table[];
 	Scanner (const char* program){
 		fp = fopen( program, "r" ); 
 	}
 	Lex get_lex();
 };
 
-string Scanner::TW[ ] = { "","and","begin","bool","do","else","end","if","false","int","not","or","program","read","then","true","var","while","write" };
+string Scanner::TW[ ] = {"","do","else","function","if","false","read","true","var","while","write","for","in","break","continue","return"};
 string Scanner::TD[ ] = {"",";",",",":","(",")","=","<", ">", "+", "-", "*", "/", "<=", ">=","==","!=","===","!==","+=","++","-=","--","*=","/=","%","%=","&&","||"};
-
+type_of_lex Scanner::table[] = {LEX_NULL, LEX_DO, LEX_ELSE, LEX_FUNC, LEX_IF, LEX_FALSE, LEX_READ, LEX_TRUE, LEX_VAR, LEX_WHILE, LEX_WRITE,LEX_FOR, LEX_IN, LEX_BREAK, LEX_CONT, LEX_RETURN};
 type_of_lex Scanner::dlms[] = {LEX_NULL, LEX_SEMICOLON, LEX_COMMA, LEX_COLON, LEX_LPAR, LEX_RPAR, LEX_DEF, LEX_LESS, LEX_GRT, LEX_PLUS, LEX_MINUS, LEX_MUL, LEX_DIV, LEX_LEQ, LEX_GEQ, LEX_EQ, LEX_NEQ, LEX_EQ2, LEX_NEQ2, LEX_PLUSD, LEX_INC, LEX_MINUSD, LEX_DEC, LEX_MULD, LEX_DIVD, LEX_MOD, LEX_MODD,LEX_AND,LEX_OR};
 Lex Scanner::get_lex(){
 	enum state{ H, IDENT, NUMB, FLOAT, E, E_MIN,E_PL,ERR,STR1, STR2, AMP, STICK, PLUS, MINUS, SLASH, COM1, COM2, COM3, ALE, EQU1, EQU2, ECR1, ECR, FIN};
@@ -124,7 +127,7 @@ Lex Scanner::get_lex(){
 				else
 				if(isalpha(c)){CS = IDENT;}
 				else
-				if(isdigit(c)){CS = NUMB;d = 0;}
+				if(isdigit(c)){CS = NUMB; d = 0;}
 				else
 				if(c=='\''){CS =  STR1; gc();} 
 				else
@@ -144,9 +147,9 @@ Lex Scanner::get_lex(){
 				else
 				if((c=='=')||(c=='!')){CS =  EQU1; buf.push_back(c);gc();}
 				else
-				if(c=='{'){gc(); return Lex(LEX_BEGIN,0);}
+				if(c=='{'){return Lex(LEX_BEGIN,0);}
 				else
-				if(c=='}'){gc(); return Lex(LEX_FIN,0);}
+				if(c=='}'){return Lex(LEX_END,0);}
 				else
 				if(c=='#'){CS = COM1; gc();}
 				else
@@ -162,7 +165,9 @@ Lex Scanner::get_lex(){
 				}
 				else{
 					fseek(fp,-1,SEEK_CUR);
-					return Lex(LEX_IDENT, buf);
+					int k = look(buf, TW);
+					if(k>0) return Lex(table[k],k);
+					else return Lex(LEX_IDENT, buf);
 				}
 			break;
 			case NUMB:
@@ -449,30 +454,91 @@ Lex Scanner::get_lex(){
 
 
 class Parser{
-	Lex curr_lex;
+	Lex cur_lex;
 	type_of_lex c_type;
 	int c_val;
 	Scanner scan;
 	stack < int > st_int;
 	stack < type_of_lex>  st_lex;
 	void gl (){ 
-		curr_lex = scan.get_lex();
-		c_type = curr_lex.get_type();
-		c_val = curr_lex.get_value();
+		cur_lex = scan.get_lex();
+		c_type = cur_lex.get_type();
+		c_val = cur_lex.get_value();
 	}
+	void S();
+	void SENTENCE();
+	void FUNC_DEF();
+	void OPERATOR();
+	void BLOCK();
 public:
 	vector <Lex> poliz;
-//	Parser (const char * program) : scan(program){}
+	Parser (const char * program):scan(program){}
 	void analyze();
 };
+void Parser::S(){
+	gl();
+	if(c_type != LEX_FIN){
+		SENTENCE();
+		S();
+	}
+}
+void Parser::SENTENCE(){
+	if(c_type == LEX_FUNC) FUNC_DEF();
+	else OPERATOR();
+}
+void Parser::FUNC_DEF(){
+	gl();
+	if(c_type != LEX_IDENT) throw(cur_lex);
+	gl();
+	if(c_type != LEX_LPAR) throw(cur_lex);
+	gl();
+	while(c_type == LEX_IDENT){
+		gl();
+		if(c_type == LEX_RPAR) break;
+		if(c_type !=LEX_COMMA) throw(cur_lex);
+		gl();
+		if(c_type != LEX_IDENT) throw(cur_lex);
+	}
+	if(c_type != LEX_RPAR) throw(cur_lex);
+	gl();
+	BLOCK();
+}
+void Parser::OPERATOR(){
 
-
+}
+void Parser::BLOCK(){
+	if(c_type != LEX_BEGIN) throw(cur_lex);
+	gl();
+	while((c_type != LEX_END) && (c_type != LEX_FIN)){
+		OPERATOR();
+		gl();
+	}
+	if(c_type != LEX_END) throw(cur_lex);
+}
+void Parser::analyze(){
+	S();
+	if(c_type != LEX_FIN)
+		throw(cur_lex);
+	cout<<"Mr George Harrison, Mr Ringo Starr..."<<endl;
+}
 int main(int argc, char** argv){
-	Lex cur_lex(LEX_NULL,0);
+/*	Lex cur_lex(LEX_NULL,0);
 	Scanner scan("test.cpp");
 	while(cur_lex.get_type() != LEX_FIN){
 		cur_lex = scan.get_lex();
 		cout<<cur_lex.get_type()<<","<<cur_lex.get_value()<<endl;
+	}*/
+	Parser par("test.cpp");
+	try{
+		par.analyze();
+	}
+	catch(int c){
+		cout<<"lex err in "<<c<<endl;
+		return 0;
+	}
+	catch(Lex l){
+		cout<<"parsing err in lex "<<l.get_type()<<endl;
+		return 0;
 	}
 /*	if(argc < 2){
 		std::cerr<<"i need file\n";
