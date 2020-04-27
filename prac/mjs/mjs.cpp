@@ -465,11 +465,17 @@ class Parser{
 		c_type = cur_lex.get_type();
 		c_val = cur_lex.get_value();
 	}
+	bool is_expr();
 	void S();
 	void SENTENCE();
 	void FUNC_DEF();
 	void OPERATOR();
 	void BLOCK();
+	void VAR_DEF();
+	void IF();
+	void TRANSIT_OP();
+	void LOOP_OP();
+	void EXPR_OP();
 public:
 	vector <Lex> poliz;
 	Parser (const char * program):scan(program){}
@@ -504,16 +510,138 @@ void Parser::FUNC_DEF(){
 	BLOCK();
 }
 void Parser::OPERATOR(){
-
+	//OPERATOR ->LOOP_OP | EXPR_OP
+	if(c_type == LEX_VAR) VAR_DEF();
+	else if(c_type == LEX_SEMICOLON) gl();
+	else if(c_type == LEX_BEGIN) BLOCK();
+	else if(c_type == LEX_IF) IF(); 
+	else if((c_type == LEX_BREAK)||(c_type == LEX_CONT)||(c_type == LEX_RETURN)) TRANSIT_OP();
+	else if((c_type == LEX_DO)||(c_type == LEX_FOR)||(c_type == LEX_WHILE)) LOOP_OP();
+	else if(is_expr()) EXPR_OP();
+	else throw(cur_lex);
+}
+void Parser::VAR_DEF(){
+	do{
+		gl();
+		if(c_type != LEX_IDENT) throw(cur_lex);
+		gl();
+		if(c_type == LEX_DEF){
+			gl();
+			if(is_expr()) EXPR_OP();
+			else throw(cur_lex);
+		}
+	}
+	while(c_type == LEX_COMMA);
+	if(c_type != LEX_SEMICOLON) throw(cur_lex);
+	gl();
+}
+void Parser::IF(){
+	gl();
+	if(c_type != LEX_LPAR) throw(cur_lex);
+	gl();
+	if(is_expr()) EXPR_OP();
+	else throw(cur_lex);
+	if(c_type != LEX_RPAR) throw(cur_lex);
+	gl();
+	OPERATOR();
+	if(c_type == LEX_ELSE){
+		gl();
+		OPERATOR();
+	}
+}
+void Parser::TRANSIT_OP(){
+	if(c_type == LEX_RETURN){
+		gl();
+		if(is_expr()) EXPR_OP();
+	}
+	else{
+		gl();
+	}
+	if(c_type != LEX_SEMICOLON) throw(cur_lex);
+	gl();
+}
+void Parser::LOOP_OP(){
+	switch(c_type){
+	case LEX_WHILE:
+		gl();
+		if(c_type != LEX_LPAR) throw(cur_lex);
+		gl();
+		if(is_expr())EXPR_OP();
+		else throw(cur_lex);
+		if(c_type != LEX_RPAR) throw(cur_lex);
+		gl();
+		OPERATOR();
+	break;
+	case LEX_DO:
+		gl();
+		OPERATOR();
+		if(c_type != LEX_WHILE) throw(cur_lex);
+		gl();
+		if(c_type != LEX_LPAR) throw(cur_lex);
+		gl();
+		if(is_expr())EXPR_OP();
+		else throw(cur_lex);
+		if(c_type != LEX_RPAR) throw(cur_lex);
+		gl();
+		if(c_type != LEX_SEMICOLON) throw(cur_lex);
+		gl();
+	break;
+	case LEX_FOR:
+		gl();
+		if(c_type != LEX_LPAR) throw(cur_lex);
+		gl();
+		if(c_type == LEX_VAR){
+			gl();
+			if(c_type != LEX_IDENT) throw(cur_lex);
+			gl();
+			if(c_type != LEX_IN) throw(cur_lex);
+			gl();
+			if(is_expr()) EXPR_OP();
+			else throw(cur_lex);
+			if(c_type != LEX_RPAR) throw(cur_lex);
+			gl();
+			OPERATOR();
+		}
+		else if(is_expr() || (c_type == LEX_SEMICOLON)){
+			if(is_expr()){
+				EXPR_OP();
+				if(c_type != LEX_SEMICOLON) throw(cur_lex);
+			}
+			gl();
+			if(is_expr()){
+				EXPR_OP();
+				if(c_type != LEX_SEMICOLON) throw(cur_lex);
+			}
+			else if(c_type!=LEX_SEMICOLON) throw(cur_lex);
+			gl();
+			if(is_expr()){
+				EXPR_OP();
+			}
+			if(c_type != LEX_RPAR) throw(cur_lex);
+			gl();
+			OPERATOR();
+		}
+		else throw(cur_lex);
+	break;
+	default:
+	break;
+	}
+}
+bool Parser::is_expr(){
+	if((c_type == LEX_NUM)||(c_type == LEX_IDENT)||(c_type == LEX_TRUE)||(c_type == LEX_FALSE)||(c_type == LEX_INC)||(c_type == LEX_DEC)||(c_type == LEX_STR)) return true;
+	return false;
+}
+void Parser::EXPR_OP(){
+	gl();
 }
 void Parser::BLOCK(){
 	if(c_type != LEX_BEGIN) throw(cur_lex);
 	gl();
 	while((c_type != LEX_END) && (c_type != LEX_FIN)){
 		OPERATOR();
-		gl();
 	}
 	if(c_type != LEX_END) throw(cur_lex);
+	gl();
 }
 void Parser::analyze(){
 	S();
