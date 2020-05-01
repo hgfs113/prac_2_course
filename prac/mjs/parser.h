@@ -5,33 +5,35 @@
 
 class Poliz{
 	Lex *p;
-	int _size;
-	int top;
+	int size;
+	int free;
 public:
-	Poliz(int size = 100){
-		p = new Lex[_size = size];
-		top = 0;
+	Poliz(int max_size = 100){
+		p = new Lex[size = max_size];
+		free = 0;
 	}
 	~Poliz(){ delete []p; }
 	void put_lex(Lex l){
-		p[top++] = l;
+		p[free] = l;
+		free++;
 	}
 	void put_lex(Lex l, int place){
 		p[place] = l;
 	}
 	void pop(){
-		if(top > 0) top--;
+		if(free > 0) free--;
 	}
-	int get_top(){	return top; }
-	int get_size(){ return _size; }
+	void blank(){free++;}
+	int get_free(){ return free; }
+	int get_size(){ return size; }
 	Lex& operator[](int index){
-		if(index > _size) throw "POLIZ: index";
-		else if(index > top) throw "POLIZ: undefinet";
+		if(index > size) throw "POLIZ: index";
+		else if(index > free) throw "POLIZ: undefinet";
 		else return p[index];
 	}
 	void print(){
-		for(int i = 0; i < top; i++){
-			std::cout << p[i] << std::endl;
+		for(int i = 0; i < free; i++){
+			std::cout <<i<<" : "<< p[i] << std::endl;
 		}
 	}
 };
