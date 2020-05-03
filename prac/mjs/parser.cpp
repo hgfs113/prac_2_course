@@ -60,7 +60,6 @@ void Parser::VAR_DEF(){
 		gl();
 		if(c_type != LEX_IDENT) throw(cur_lex);
 		st_int.push(c_val);
-		dec(LEX_IDENT);
 		int prev_val = c_val;
 		gl();
 		if(c_type == LEX_DEF){
@@ -70,7 +69,6 @@ void Parser::VAR_DEF(){
 				expresion();
 				prog.put_lex(Lex(LEX_DEF));
 			}else if(c_type == LEX_LAR){
-				dec2(LEX_ARR, prev_val);
 				prog.pop();
 				int offs = 0;
 				gl();
@@ -80,14 +78,14 @@ void Parser::VAR_DEF(){
 					prog.put_lex(Lex(LEX_DEF));
 					++offs;
 					if(c_type == LEX_COMMA) gl();
-					else if(c_type == LEX_RAR) throw(cur_lex);
+					else if(c_type != LEX_RAR) throw(cur_lex);
 				}
 				gl();
 			}else if(c_type == OBJ_ENV){
 				ENV();
 			}
 			else throw(cur_lex);
-		}
+		}dec(LEX_IDENT);
 	}
 	while(c_type == LEX_COMMA);
 	if(c_type != LEX_SEMICOLON) throw(cur_lex);
@@ -247,12 +245,21 @@ void Parser::dec(type_of_lex type){
 	int i;
 	while(!st_int.is_empty()){
 		i = st_int.pop();
-		dec2(type, i);
+		if(TID[i].get_declare()){
+			std::cout<<st_int.pop();
+			throw "Twice declare";
+		}else{
+			TID[i].put_declare();
+			TID[i].put_type(type);
+		}
 	}
 }
 
 void Parser::dec2(type_of_lex type, int val){
-	if(TID[val].get_declare()) throw "Twice declare";
+	if(TID[val].get_declare()){
+		std::cout<<c_type<<" here "<<c_val<<std::endl;
+		throw "Twice declare";
+	}
 	else{
 		TID[val].put_declare();
 		TID[val].put_type(type);
@@ -283,8 +290,7 @@ void Parser::expresion(){
 void Parser::E1(){
 	T();
 	while(c_type == LEX_PLUS || c_type == LEX_MINUS || c_type == LEX_OR){
-		std::cout<<c_type<<" here1111111\n";
-		//st_lex.push(c_type); i-1
+		//st_lex.push(c_type);
 		type_of_lex prev_type=c_type;
 		gl();
 		T();
@@ -410,10 +416,10 @@ void Parser::check_not(){
 }
 void Parser::D(){
     if(is_def()){
-        type_of_lex _type = c_type;
+        type_of_lex p_type = c_type;
         gl();
         expresion();
-        prog.put_lex(Lex(_type));
+        prog.put_lex(Lex(p_type));
     }else throw(cur_lex);
 }
 
@@ -436,10 +442,21 @@ void Parser::WRITE(){
 	gl();
 	if(c_type != LEX_LPAR) throw(cur_lex);
 	gl();
+	int p_val = c_val;
 	if(c_type == LEX_IDENT || c_type == LEX_NUM || c_type == LEX_STR || c_type == LEX_BOOL){
-	//
+		prog.put_lex(cur_lex);
 	}else throw(cur_lex);
 	gl();
+	if(c_type == LEX_LAR){
+		prog.pop();
+		prog.put_lex(Lex(LEX_ARR, p_val));
+		gl();
+		if(c_type != LEX_NUM) throw(cur_lex);
+		prog.put_lex(cur_lex);
+		gl();
+		if(c_type != LEX_RAR) throw(cur_lex);
+		gl();
+	}
 	if(c_type != LEX_RPAR) throw(cur_lex);
 	gl();
 }

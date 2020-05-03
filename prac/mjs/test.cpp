@@ -1,4 +1,2 @@
-var i = 0;
-for(i=1;i<10;i++){
-	i+=10;
-}
+var a = [0,true];
+Response.write(a[1]);

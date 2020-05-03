@@ -51,7 +51,7 @@ class Parser{
 		c_val = cur_lex.get_value();
 	}
 	bool is_def(){
-		return (c_type == LEX_DEF)||(c_type == LEX_PLUSD)||(c_type == LEX_MULD)||(c_type == LEX_DIVD);
+		return (c_type == LEX_DEF)||(c_type == LEX_PLUSD)||(c_type == LEX_MINUSD)||(c_type == LEX_MULD)||(c_type == LEX_DIVD);
 	}
 	bool is_expr();
 	bool is_un();
