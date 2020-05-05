@@ -402,7 +402,7 @@ void Parser::analyze(){
 	prog.print();
 	if(c_type != LEX_FIN)
 		throw(cur_lex);
-	std::cout<<"Mr George Harrison, Mr Ringo Starr..."<<std::endl;
+	std::cout<<"succses!..."<<std::endl;
 }
 void Parser::check_op(){}
 void Parser::check_ident(){
