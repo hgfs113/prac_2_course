@@ -2,7 +2,20 @@
 #define __PARSER__
 #include "scanner.h"
 #include "stack.h"
+/*
 
+S-> SENTENSE S| eps
+SENTENCE -> FUNC_DEF | OPERATOR
+FUNC_DEF -> function <ident> ([<ident>], {,<ident>}) BLOCK
+OPERATOR -> VAR_DEF | BLOCK | IF | LOOP_OP | TRANSIT_OP | EXPR_OP | ;
+VAR_DEF -> var <ident> [= EXPRESSION] {, <ident> [= EXPRESSION]} ;
+BLOCK -> { OPERATOR {OPERATOR} }
+COND_OP -> if (EXPRESSION) OPERATOR  [else OPERATOR]
+LOOP_OP -> while(EXPRESSION) OPERATOR | for([EXPRESSION]; [EXPRESSION]; [EXPRESSION]) OPERATOR |
+	   do OPERATOR while(EXPRESSION); | for([var] <ident> in EXPRESSION) OPERATOR
+TRANSIT_OP -> break; | continue; | return [EXPRESSION];
+EXPR_OP -> EXPRESSION;
+*/
 class Poliz{
 	Lex *p;
 	int size;
@@ -77,6 +90,7 @@ class Parser{
 	void IF();
 	void ENV();
 	void RESPONSE();
+	void DOT();
 	void TRANSIT_OP();
 	void LOOP_OP();
 	void EXPR_OP();

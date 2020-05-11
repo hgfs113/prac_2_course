@@ -1,36 +1,40 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <string>
+#include <cstring>
 #include <stack>
 #include <unistd.h>
 #include <fcntl.h>
-#include "parser.h"
+#include "interpreter.h"
 
 using namespace std;
 
-int main(int argc, char** argv){
+int main(){
 /*        Lex cur_lex(LEX_NULL,0);
 	Scanner scan("test.cpp");
 	while(cur_lex.get_type() != LEX_FIN){
 		cur_lex = scan.get_lex();
 		cout<<cur_lex.get_type()<<","<<cur_lex.get_value()<<endl;
 	}*/
-	Parser par("test.cpp");
 	try{
-		par.analyze();
+		Interpretator I("cgi-bin/test.cpp");
+		I.interpretation();
+	}
+	catch(char c){
+		cout << "unexpected symbol " << c << endl;
+		return 1;
 	}
 	catch(int c){
-		cout<<"lex err in "<<c<<endl;
-		return 0;
+		cout << "unexpected symbol " << c << endl;
+		return 1;
 	}
 	catch(Lex l){
-		cout<<"parsing err in lex "<<l.get_type()<<endl;
-		return 0;
+		cout << "unexpected lexeme" <<l.get_type()<<endl;
+		return 1;
 	}
 	catch(const char * s){
-		cout<<s<<endl;
-		return 0;
+			cout<<s<<endl;
+			return 1;
 	}
 	return 0;
 }

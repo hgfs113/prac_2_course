@@ -175,8 +175,8 @@ Lex Scanner::get_lex(){
 					return Lex(LEX_STR, buf);
 				}
 				else{
-					gc();
 					buf.push_back(c);
+					gc();
 				}
 				
 			break;

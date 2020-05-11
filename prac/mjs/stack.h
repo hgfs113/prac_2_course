@@ -29,5 +29,7 @@ template<class T, int max_size >T Stack <T, max_size >::pop(){
 		--top;
 		return s[top];
 	}
-else throw"Stack_is_empty";
+	else{
+		throw"Stack_is_empty";
+	}
 }

@@ -273,8 +273,8 @@ int main(int argc, char ** argv){
 			}
 		}
 		for(int i = 0; i < pids.get_len(); i++){
-			if(waitpid(pids[i], &status, WNOHANG)){
-			//	printf("status = %d\n",status);
+			if(waitpid(pids[i], &status, 0)){
+				printf("status = %d\n",status);
 				if(!(status)){
 					printf("OK\n");
 					char fname[11];
@@ -292,7 +292,7 @@ int main(int argc, char ** argv){
 					char * cl = itoa(fcount(fd));
 					strcat(buf,cl);
 					delete [] cl;
-					strcat(buf,"\nContent-type: text/plain\n\n");
+					strcat(buf,"\nContent-type: text/html\n\n");
 					int len = strlen(buf);
 					send(client.get_sock(),&buf,len,0);
 					while((len = read(fd,buf,BUFLEN))>0)
